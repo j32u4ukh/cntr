@@ -14,6 +14,9 @@ type Set[T Element] struct {
 func NewSet[T Element](elements ...T) *Set[T] {
 	s := &Set[T]{Elements: map[T]void{}}
 	if len(elements) > 0 {
+		for _, element := range elements {
+			s.Add(element)
+		}
 	}
 	return s
 }
