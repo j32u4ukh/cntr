@@ -67,6 +67,13 @@ func (m *BikeyMap[K1, K2, V]) GetByKey1(key1 K1) (V, bool) {
 	return v, false
 }
 
+func (m *BikeyMap[K1, K2, V]) ContainKey1(key1 K1) bool {
+	if _, ok := m.dict1[key1]; ok {
+		return true
+	}
+	return false
+}
+
 func (m *BikeyMap[K1, K2, V]) GetByKey2(key2 K2) (V, bool) {
 	if index, ok := m.dict2[key2]; ok {
 		if bv, ok := m.dict3[index]; ok {
@@ -75,6 +82,13 @@ func (m *BikeyMap[K1, K2, V]) GetByKey2(key2 K2) (V, bool) {
 	}
 	var v V
 	return v, false
+}
+
+func (m *BikeyMap[K1, K2, V]) ContainKey2(key2 K2) bool {
+	if _, ok := m.dict2[key2]; ok {
+		return true
+	}
+	return false
 }
 
 func (m *BikeyMap[K1, K2, V]) UpdateByKey1(key1 K1, value *Bivalue[K1, K2, V]) {

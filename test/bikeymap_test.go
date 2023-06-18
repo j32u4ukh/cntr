@@ -64,6 +64,30 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestContain(t *testing.T) {
+	var ok bool
+	bm, err := BM1()
+	if err != nil {
+		t.Errorf("BM1 | Error: %+v\n", err)
+	}
+	ok = bm.ContainKey1("a")
+	if ok != true {
+		t.Errorf("TestContain | Error: %+v\n", err)
+	}
+	ok = bm.ContainKey2(1)
+	if ok != true {
+		t.Errorf("TestContain | Error: %+v\n", err)
+	}
+	ok = bm.ContainKey1("A")
+	if ok != false {
+		t.Errorf("TestContain | Error: %+v\n", err)
+	}
+	ok = bm.ContainKey2(100)
+	if ok != false {
+		t.Errorf("TestContain | Error: %+v\n", err)
+	}
+}
+
 func TestUpdate(t *testing.T) {
 	var value, answer float32
 	var ok bool
