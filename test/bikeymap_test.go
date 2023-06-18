@@ -64,6 +64,33 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestGetKeys(t *testing.T) {
+	var value, answer float32
+	var ok bool
+	bm, err := BM1()
+	if err != nil {
+		t.Errorf("BM1 | Error: %+v\n", err)
+	}
+	// (a, 1)
+	answer = 1.0
+	value, ok = bm.GetByKeys("a", 1)
+	if (ok == false) || (value != answer) {
+		t.Errorf("TestGet | Error: %+v\n", err)
+	}
+	// (b, 2)
+	answer = 1.414
+	value, ok = bm.GetByKeys("b", 2)
+	if (ok == false) || (value != answer) {
+		t.Errorf("TestGet | Error: %+v\n", err)
+	}
+	// (c, 3)
+	answer = 1.71
+	value, ok = bm.GetByKeys("c", 3)
+	if (ok == false) || (value != answer) {
+		t.Errorf("TestGet | Error: %+v\n", err)
+	}
+}
+
 func TestContain(t *testing.T) {
 	var ok bool
 	bm, err := BM1()

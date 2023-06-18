@@ -57,6 +57,21 @@ func (m *BikeyMap[K1, K2, V]) Set(key1 K1, key2 K2, value V) {
 	m.index++
 }
 
+// 根據兩個對應的 Key 來取值，也可確定兩個 Key 是一組的。
+func (m *BikeyMap[K1, K2, V]) GetByKeys(key1 K1, key2 K2) (V, bool) {
+	var index1, index2 int64
+	var ok bool
+	var v V
+	if index1, ok = m.dict1[key1]; ok {
+		if index2, ok = m.dict2[key2]; ok && (index1 == index2) {
+			if bv, ok := m.dict3[index1]; ok {
+				return bv.value, true
+			}
+		}
+	}
+	return v, false
+}
+
 func (m *BikeyMap[K1, K2, V]) GetByKey1(key1 K1) (V, bool) {
 	if index, ok := m.dict1[key1]; ok {
 		if bv, ok := m.dict3[index]; ok {
@@ -67,13 +82,6 @@ func (m *BikeyMap[K1, K2, V]) GetByKey1(key1 K1) (V, bool) {
 	return v, false
 }
 
-func (m *BikeyMap[K1, K2, V]) ContainKey1(key1 K1) bool {
-	if _, ok := m.dict1[key1]; ok {
-		return true
-	}
-	return false
-}
-
 func (m *BikeyMap[K1, K2, V]) GetByKey2(key2 K2) (V, bool) {
 	if index, ok := m.dict2[key2]; ok {
 		if bv, ok := m.dict3[index]; ok {
@@ -82,6 +90,21 @@ func (m *BikeyMap[K1, K2, V]) GetByKey2(key2 K2) (V, bool) {
 	}
 	var v V
 	return v, false
+}
+
+func (m *BikeyMap[K1, K2, V]) ContainKeys(key1 K1, key2 K2) bool {
+	ok := m.ContainKey1(key1)
+	if !ok {
+		return false
+	}
+	return m.ContainKey2(key2)
+}
+
+func (m *BikeyMap[K1, K2, V]) ContainKey1(key1 K1) bool {
+	if _, ok := m.dict1[key1]; ok {
+		return true
+	}
+	return false
 }
 
 func (m *BikeyMap[K1, K2, V]) ContainKey2(key2 K2) bool {
