@@ -57,8 +57,8 @@ func (s *Set[T]) Remove(element T) bool {
 	return false
 }
 
-func (s *Set[T]) GetIterator() *Iterator {
-	element := []any{}
+func (s *Set[T]) GetIterator() *Iterator[T] {
+	element := []T{}
 	for e := range s.Elements {
 		element = append(element, e)
 	}

@@ -56,13 +56,9 @@ func (a *Array[T]) Iter() func() (T, bool) {
 	}
 }
 
-func (a *Array[T]) GetIterator() *Iterator {
-	element := []any{}
-
-	for _, e := range a.Elements {
-		element = append(element, e)
-	}
-
+func (a *Array[T]) GetIterator() *Iterator[T] {
+	element := []T{}
+	element = append(element, a.Elements...)
 	return NewIterator(element)
 }
 
