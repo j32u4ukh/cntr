@@ -72,9 +72,10 @@ func (s *Set[T]) Clear() {
 }
 
 func (s *Set[T]) Clone() *Set[T] {
-	clone := NewSet[T]()
+	elements := []T{}
 	for e := range s.Elements {
-		clone.Add(e)
+		elements = append(elements, e)
 	}
+	clone := NewSet[T](elements...)
 	return clone
 }

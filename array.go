@@ -1,5 +1,7 @@
 package cntr
 
+import "fmt"
+
 type Int interface {
 	int | int8 | int16 | int32 | int64
 }
@@ -43,6 +45,7 @@ func (a *Array[T]) Contains(v interface{}) bool {
 }
 
 func (a *Array[T]) Iter() func() (T, bool) {
+	fmt.Println("此函式即將棄用")
 	index := 0
 
 	return func() (val T, ok bool) {
@@ -57,9 +60,9 @@ func (a *Array[T]) Iter() func() (T, bool) {
 }
 
 func (a *Array[T]) GetIterator() *Iterator[T] {
-	element := []T{}
-	element = append(element, a.Elements...)
-	return NewIterator(element)
+	elements := []T{}
+	copy(elements, a.Elements)
+	return NewIterator(elements)
 }
 
 func (a *Array[T]) Length() int {
@@ -120,6 +123,8 @@ func (a *Array[T]) Clear() {
 }
 
 func (a *Array[T]) Clone() *Array[T] {
-	clone := &Array[T]{Elements: a.Elements}
+	elements := []T{}
+	copy(elements, a.Elements)
+	clone := &Array[T]{Elements: elements}
 	return clone
 }
