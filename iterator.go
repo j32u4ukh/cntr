@@ -1,13 +1,13 @@
 package cntr
 
-type Iterator struct {
-	datas  []any
+type Iterator[V any] struct {
+	datas  []V
 	index  int
 	length int
 }
 
-func NewIterator(datas []any) *Iterator {
-	it := &Iterator{
+func NewIterator[V any](datas []V) *Iterator[V] {
+	it := &Iterator[V]{
 		datas:  datas,
 		index:  -1,
 		length: len(datas),
@@ -15,11 +15,11 @@ func NewIterator(datas []any) *Iterator {
 	return it
 }
 
-func (it *Iterator) HasNext() bool {
+func (it *Iterator[V]) HasNext() bool {
 	it.index += 1
 	return it.index < it.length
 }
 
-func (it *Iterator) Next() any {
+func (it *Iterator[V]) Next() V {
 	return it.datas[it.index]
 }

@@ -163,3 +163,11 @@ func (m *BikeyMap[K1, K2, V]) del(index int64, bv *Bivalue[K1, K2, V]) {
 	delete(m.dict2, bv.key2)
 	delete(m.dict3, index)
 }
+
+func (m *BikeyMap[K1, K2, V]) GetIterator() *Iterator[*Bivalue[K1, K2, V]] {
+	values := []*Bivalue[K1, K2, V]{}
+	for _, bv := range m.dict3 {
+		values = append(values, bv)
+	}
+	return NewIterator(values)
+}
