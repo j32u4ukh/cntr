@@ -1,8 +1,9 @@
 package cntr
 
 import (
-	"fmt"
 	"sync"
+
+	"github.com/pkg/errors"
 )
 
 type NestedMap[K1 Element, K2 Element, V Element] struct {
@@ -19,6 +20,8 @@ func NewNestedMap[K1 Element, K2 Element, V Element]() *NestedMap[K1, K2, V] {
 
 func (nm *NestedMap[K1, K2, V]) Add(k1 K1, k2 K2, vs []V) {
 	var ok bool
+	nm.mu.Lock()
+	defer nm.mu.Unlock()
 	if _, ok = nm.dict[k1]; !ok {
 		nm.dict[k1] = make(map[K2][]V)
 	}
@@ -30,11 +33,13 @@ func (nm *NestedMap[K1, K2, V]) Add(k1 K1, k2 K2, vs []V) {
 
 func (nm *NestedMap[K1, K2, V]) Get(k1 K1, k2 K2) ([]V, error) {
 	var ok bool
+	nm.mu.Lock()
+	defer nm.mu.Unlock()
 	if _, ok = nm.dict[k1]; !ok {
-		return nil, fmt.Errorf("Not found Key1: %+v.", k1)
+		return nil, errors.Errorf("Not found Key1: %+v.", k1)
 	}
 	if _, ok = nm.dict[k1][k2]; !ok {
-		return nil, fmt.Errorf("Not found Key2: %+v.", k2)
+		return nil, errors.Errorf("Not found Key2: %+v.", k2)
 	}
 	return nm.dict[k1][k2], nil
 }
@@ -43,6 +48,8 @@ func (nm *NestedMap[K1, K2, V]) GetByKey1(k1 K1) ([]V, error) {
 	var dict map[K2][]V
 	var ok bool
 	result := []V{}
+	nm.mu.Lock()
+	defer nm.mu.Unlock()
 	if dict, ok = nm.dict[k1]; ok {
 		for _, values := range dict {
 			result = append(result, values...)
@@ -56,6 +63,8 @@ func (nm *NestedMap[K1, K2, V]) GetByKey2(k2 K2) ([]V, error) {
 	var values []V
 	var ok bool
 	result := []V{}
+	nm.mu.Lock()
+	defer nm.mu.Unlock()
 	for _, dict = range nm.dict {
 		if values, ok = dict[k2]; ok {
 			result = append(result, values...)

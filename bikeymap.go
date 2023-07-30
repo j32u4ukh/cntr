@@ -1,8 +1,9 @@
 package cntr
 
 import (
-	"fmt"
 	"sync"
+
+	"github.com/pkg/errors"
 )
 
 type Bivalue[K1 Element, K2 Element, V any] struct {
@@ -18,6 +19,18 @@ func NewBivalue[K1 Element, K2 Element, V any](key1 K1, key2 K2, value V) *Bival
 		value: value,
 	}
 	return v
+}
+
+func (b *Bivalue[K1, K2, V]) GetKey1() K1 {
+	return b.key1
+}
+
+func (b *Bivalue[K1, K2, V]) GetKey2() K2 {
+	return b.key2
+}
+
+func (b *Bivalue[K1, K2, V]) GetValue() V {
+	return b.value
 }
 
 type BikeyMap[K1 Element, K2 Element, V any] struct {
@@ -40,20 +53,28 @@ func NewBikeyMap[K1 Element, K2 Element, V any]() *BikeyMap[K1, K2, V] {
 
 func (m *BikeyMap[K1, K2, V]) Add(key1 K1, key2 K2, value V) error {
 	var ok bool
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if _, ok = m.dict1[key1]; ok {
-		return fmt.Errorf("Key1 %+v has been exists.", key1)
+		return errors.Errorf("Key1 %+v has been exists.", key1)
 	}
 	if _, ok = m.dict2[key2]; ok {
-		return fmt.Errorf("Key2 %+v has been exists.", key2)
+		return errors.Errorf("Key2 %+v has been exists.", key2)
 	}
-	m.Set(key1, key2, value)
+	m.set(key1, key2, value)
 	return nil
 }
 
 func (m *BikeyMap[K1, K2, V]) Set(key1 K1, key2 K2, value V) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.set(key1, key2, value)
+}
+
+func (m *BikeyMap[K1, K2, V]) set(key1 K1, key2 K2, value V) {
 	m.dict1[key1] = m.index
 	m.dict2[key2] = m.index
-	m.dict3[m.index] = NewBivalue[K1, K2, V](key1, key2, value)
+	m.dict3[m.index] = NewBivalue(key1, key2, value)
 	m.index++
 }
 
@@ -62,6 +83,8 @@ func (m *BikeyMap[K1, K2, V]) GetByKeys(key1 K1, key2 K2) (V, bool) {
 	var index1, index2 int64
 	var ok bool
 	var v V
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if index1, ok = m.dict1[key1]; ok {
 		if index2, ok = m.dict2[key2]; ok && (index1 == index2) {
 			if bv, ok := m.dict3[index1]; ok {
@@ -73,6 +96,8 @@ func (m *BikeyMap[K1, K2, V]) GetByKeys(key1 K1, key2 K2) (V, bool) {
 }
 
 func (m *BikeyMap[K1, K2, V]) GetByKey1(key1 K1) (V, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if index, ok := m.dict1[key1]; ok {
 		if bv, ok := m.dict3[index]; ok {
 			return bv.value, true
@@ -83,6 +108,8 @@ func (m *BikeyMap[K1, K2, V]) GetByKey1(key1 K1) (V, bool) {
 }
 
 func (m *BikeyMap[K1, K2, V]) GetByKey2(key2 K2) (V, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if index, ok := m.dict2[key2]; ok {
 		if bv, ok := m.dict3[index]; ok {
 			return bv.value, true
@@ -101,6 +128,8 @@ func (m *BikeyMap[K1, K2, V]) ContainKeys(key1 K1, key2 K2) bool {
 }
 
 func (m *BikeyMap[K1, K2, V]) ContainKey1(key1 K1) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if _, ok := m.dict1[key1]; ok {
 		return true
 	}
@@ -108,6 +137,8 @@ func (m *BikeyMap[K1, K2, V]) ContainKey1(key1 K1) bool {
 }
 
 func (m *BikeyMap[K1, K2, V]) ContainKey2(key2 K2) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if _, ok := m.dict2[key2]; ok {
 		return true
 	}
@@ -115,6 +146,8 @@ func (m *BikeyMap[K1, K2, V]) ContainKey2(key2 K2) bool {
 }
 
 func (m *BikeyMap[K1, K2, V]) UpdateByKey1(key1 K1, value *Bivalue[K1, K2, V]) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if index, ok := m.dict1[key1]; ok {
 		if origin, ok := m.dict3[index]; ok {
 			m.update(index, origin, value)
@@ -123,6 +156,8 @@ func (m *BikeyMap[K1, K2, V]) UpdateByKey1(key1 K1, value *Bivalue[K1, K2, V]) {
 }
 
 func (m *BikeyMap[K1, K2, V]) UpdateByKey2(key2 K2, value *Bivalue[K1, K2, V]) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if index, ok := m.dict2[key2]; ok {
 		if origin, ok := m.dict3[index]; ok {
 			m.update(index, origin, value)
@@ -143,6 +178,8 @@ func (m *BikeyMap[K1, K2, V]) update(index int64, origin *Bivalue[K1, K2, V], va
 }
 
 func (m *BikeyMap[K1, K2, V]) DelByKey1(key1 K1) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if index, ok := m.dict1[key1]; ok {
 		if bv, ok := m.dict3[index]; ok {
 			m.del(index, bv)
@@ -151,6 +188,8 @@ func (m *BikeyMap[K1, K2, V]) DelByKey1(key1 K1) {
 }
 
 func (m *BikeyMap[K1, K2, V]) DelByKey2(key2 K2) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if index, ok := m.dict2[key2]; ok {
 		if bv, ok := m.dict3[index]; ok {
 			m.del(index, bv)
@@ -165,6 +204,8 @@ func (m *BikeyMap[K1, K2, V]) del(index int64, bv *Bivalue[K1, K2, V]) {
 }
 
 func (m *BikeyMap[K1, K2, V]) GetIterator() *Iterator[*Bivalue[K1, K2, V]] {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	values := []*Bivalue[K1, K2, V]{}
 	for _, bv := range m.dict3 {
 		values = append(values, bv)

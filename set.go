@@ -76,6 +76,6 @@ func (s *Set[T]) Clone() *Set[T] {
 	for e := range s.Elements {
 		elements = append(elements, e)
 	}
-	clone := NewSet[T](elements...)
+	clone := NewSet(elements...)
 	return clone
 }
