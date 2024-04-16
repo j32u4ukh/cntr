@@ -60,7 +60,7 @@ func (a *Array[T]) Iter() func() (T, bool) {
 }
 
 func (a *Array[T]) GetIterator() *Iterator[T] {
-	elements := []T{}
+	elements := make([]T, a.Length())
 	copy(elements, a.Elements)
 	return NewIterator(elements)
 }
