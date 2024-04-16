@@ -123,8 +123,8 @@ func (a *Array[T]) Clear() {
 }
 
 func (a *Array[T]) Clone() *Array[T] {
-	elements := []T{}
+	elements := make([]T, a.Length())
 	copy(elements, a.Elements)
-	clone := &Array[T]{Elements: elements}
+	clone := NewArray(elements...)
 	return clone
 }
