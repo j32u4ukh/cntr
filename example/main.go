@@ -7,13 +7,15 @@ import (
 )
 
 func main() {
-	bm := cntr.NewBikeyMap[int, string, float32]()
-	bm.Add(1, "a", 1)
-	bm.Add(2, "b", 4)
-	bm.Add(3, "c", 9)
-	iter := bm.GetIterator()
-	for iter.HasNext() {
-		value := iter.Next()
-		fmt.Printf("value: %+v\n", value)
+	a1 := cntr.NewSet(1, 2, 3, 4, 5)
+	a2 := a1.Clone()
+	a2.Add(9)
+	fmt.Printf("a1: %+v\n", a1)
+	fmt.Printf("a2: %+v\n", a2)
+	iter := a2.GetIterator()
+	for iter.HasNext(){
+		e := iter.Next()
+		fmt.Printf("e: %+v\n", e)
 	}
+	fmt.Println("End")
 }

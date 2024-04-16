@@ -1,6 +1,9 @@
 package cntr
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 type void struct{}
 
@@ -49,7 +52,6 @@ func (s *Set[T]) Length() int {
 func (s *Set[T]) Remove(element T) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
 	if s.Contains(element) {
 		delete(s.Elements, element)
 	}
@@ -57,12 +59,17 @@ func (s *Set[T]) Remove(element T) bool {
 	return false
 }
 
-func (s *Set[T]) GetIterator() *Iterator[T] {
-	element := []T{}
+func (s *Set[T]) ToSlice() []T {
+	elements := []T{}
 	for e := range s.Elements {
-		element = append(element, e)
+		elements = append(elements, e)
 	}
-	return NewIterator(element)
+	return elements
+}
+
+func (s *Set[T]) GetIterator() *Iterator[T] {
+	elements := s.ToSlice()
+	return NewIterator(elements)
 }
 
 func (s *Set[T]) Clear() {
@@ -72,10 +79,13 @@ func (s *Set[T]) Clear() {
 }
 
 func (s *Set[T]) Clone() *Set[T] {
-	elements := []T{}
-	for e := range s.Elements {
-		elements = append(elements, e)
-	}
+	elements := s.ToSlice()
 	clone := NewSet(elements...)
 	return clone
+}
+
+
+func (s *Set[T]) String() string {
+	elements := s.ToSlice()
+	return fmt.Sprintf("Set %+v", elements)
 }
