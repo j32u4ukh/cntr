@@ -84,7 +84,6 @@ func (s *Set[T]) Clone() *Set[T] {
 	return clone
 }
 
-
 func (s *Set[T]) String() string {
 	elements := s.ToSlice()
 	return fmt.Sprintf("Set %+v", elements)

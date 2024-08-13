@@ -2,20 +2,36 @@ package cntr
 
 import "fmt"
 
+type IntX interface {
+	int8 | int16 | int32 | int64
+}
+
 type Int interface {
-	int | int8 | int16 | int32 | int64
+	int | IntX
+}
+
+type UIntX interface {
+	uint8 | uint16 | uint32 | uint64
 }
 
 type UInt interface {
-	uint | uint8 | uint16 | uint32 | uint64
+	uint | UIntX
 }
 
 type Float interface {
 	float32 | float64
 }
 
+type NumberX interface {
+	IntX | UIntX | Float
+}
+
+type Number interface {
+	Int | UInt | NumberX
+}
+
 type Element interface {
-	Int | UInt | Float | string
+	Number | string
 }
 
 type Array[T Element] struct {
@@ -59,29 +75,29 @@ func (a *Array[T]) Iter() func() (T, bool) {
 	}
 }
 
-func (a *Array[T]) Get(index int) (any, bool){
-	if 0 <= index && index < a.Length(){
+func (a *Array[T]) Get(index int) (any, bool) {
+	if 0 <= index && index < a.Length() {
 		return a.Elements[index], true
 	}
 	return nil, false
 }
 
-func (a *Array[T]) Set(index int, value T){
-	if 0 <= index && index < a.Length(){
+func (a *Array[T]) Set(index int, value T) {
+	if 0 <= index && index < a.Length() {
 		a.Elements[index] = value
 	}
 }
 
-func (a *Array[T]) GetRange(startIndex int, endIndex int) []T{
+func (a *Array[T]) GetRange(startIndex int, endIndex int) []T {
 	length := a.Length()
-	if startIndex > endIndex{
+	if startIndex > endIndex {
 		temp := startIndex
 		startIndex = endIndex
 		endIndex = temp
 	}
 	startIndex = ModifyIndex(startIndex, length)
 	endIndex = ModifyIndex(endIndex, length)
-	results := a.Elements[startIndex: endIndex]
+	results := a.Elements[startIndex:endIndex]
 	values := make([]T, len(results))
 	copy(values, results)
 	return values
@@ -89,7 +105,7 @@ func (a *Array[T]) GetRange(startIndex int, endIndex int) []T{
 
 func (a *Array[T]) SetRange(startIndex int, endIndex int, values []T) {
 	length := a.Length()
-	if startIndex > endIndex{
+	if startIndex > endIndex {
 		temp := startIndex
 		startIndex = endIndex
 		endIndex = temp
@@ -97,7 +113,7 @@ func (a *Array[T]) SetRange(startIndex int, endIndex int, values []T) {
 	startIndex = ModifyIndex(startIndex, length)
 	endIndex = ModifyIndex(endIndex, length)
 	length = endIndex - startIndex - 1
-	copy(a.Elements[startIndex: endIndex], values[:length])
+	copy(a.Elements[startIndex:endIndex], values[:length])
 }
 
 func (a *Array[T]) GetIterator() *Iterator[T] {
@@ -160,12 +176,12 @@ func (a *Array[T]) Clone() *Array[T] {
 	return clone
 }
 
-func ModifyIndex(index int, length int)int{
-	if index < 0{
+func ModifyIndex(index int, length int) int {
+	if index < 0 {
 		return 0
-	}else if index >= length{
+	} else if index >= length {
 		return length - 1
-	} else{
+	} else {
 		return index
 	}
 }
