@@ -147,6 +147,15 @@ func (b *BinaryData) AddMapStringString(data map[string]string) {
 	}
 }
 
+func (b *BinaryData) AddMapStringByteArray(data map[string][]byte) {
+	length := int32(len(data))
+	b.AddInt32(length)
+	for k, v := range data {
+		b.AddString(k)
+		b.AddByteArray(v)
+	}
+}
+
 // ==================================================
 // 插入數據(目前只能插在最前面)
 // ==================================================
@@ -227,6 +236,19 @@ func (b *BinaryData) PopMapStringString() map[string]string {
 	return result
 }
 
+func (b *BinaryData) PopMapStringByteArray() map[string][]byte {
+	result := map[string][]byte{}
+	length := b.PopInt32()
+	var key string
+	var value []byte
+	for i := int32(0); i < length; i++ {
+		key = b.PopString()
+		value = b.PopByteArray()
+		result[key] = value
+	}
+	return result
+}
+
 func (b *BinaryData) PopString() string {
 	result := string(b.PopByteArray())
 	return result
@@ -244,7 +266,7 @@ func (b *BinaryData) PopByteArray() []byte {
 // Tools
 // ==================================================
 
-func addNumber[T int8 | int16 | int32 | int64 | uint16 | uint32 | uint64 | float32 | float64](b *BinaryData, v T) {
+func addNumber[T NumberX](b *BinaryData, v T) {
 	bs := NumberToBytes(v, b.order)
 	addDatas(b, bs)
 }
@@ -282,7 +304,7 @@ func addData(b *BinaryData, data byte) {
 // 插入數據(目前只能插在最前面)
 // ==================================================
 
-func insertNumber[T int8 | int16 | int32 | int64 | uint16 | uint32 | uint64 | float32 | float64](b *BinaryData, v T, bit int32) {
+func insertNumber[T NumberX](b *BinaryData, v T, bit int32) {
 	// 將原始數據往後平移 bit 個 byte
 	copy(b.data[bit:b.length+bit], b.data[:b.length])
 	// 將數據寫入最前面的 bit 個 byte
@@ -293,7 +315,7 @@ func insertNumber[T int8 | int16 | int32 | int64 | uint16 | uint32 | uint64 | fl
 	b.index = b.length
 }
 
-func popNumber[T Number](b *BinaryData, bit byte) T {
+func popNumber[T NumberX](b *BinaryData, bit byte) T {
 	result := BytesToNumber[T](b.data[b.index:b.index+int32(bit)], b.order)
 	b.index += int32(bit)
 	return result
@@ -323,13 +345,7 @@ func ceilSquare(value int32) int32 {
 
 // ===== 轉 byte 陣列 =====
 // 數字 轉 byte 陣列
-func NumberToBytes[T int8 | int16 | int32 | int64 | uint16 | uint32 | uint64 | float32 | float64](v T, order binary.ByteOrder) []byte {
-	bytesBuffer := bytes.NewBuffer([]byte{})
-	binary.Write(bytesBuffer, order, v)
-	return bytesBuffer.Bytes()
-}
-
-func NumberToBytes2[T NumberX](v T, order binary.ByteOrder) []byte {
+func NumberToBytes[T NumberX](v T, order binary.ByteOrder) []byte {
 	bytesBuffer := bytes.NewBuffer([]byte{})
 	binary.Write(bytesBuffer, order, v)
 	return bytesBuffer.Bytes()
@@ -337,7 +353,7 @@ func NumberToBytes2[T NumberX](v T, order binary.ByteOrder) []byte {
 
 // ===== byte 陣列轉回原始數值 =====
 
-func BytesToNumber[T Number](b []byte, order binary.ByteOrder) T {
+func BytesToNumber[T NumberX](b []byte, order binary.ByteOrder) T {
 	var result T
 	buffer := bytes.NewBuffer(b)
 	binary.Read(buffer, order, &result)

@@ -8,6 +8,6 @@ import (
 )
 
 func main() {
-	bs := cntr.NumberToBytes2(int32(20), binary.LittleEndian)
+	bs := cntr.NumberToBytes(int32(20), binary.LittleEndian)
 	fmt.Printf("bs: %+v\n", bs)
 }
