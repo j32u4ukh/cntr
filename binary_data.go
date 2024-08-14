@@ -39,6 +39,7 @@ func LoadBinaryData(data []byte) *BinaryData {
 	bd := NewBinaryData()
 	bd.SetCapacity(size)
 	bd.AddRawData(data)
+	bd.ResetIndex()
 	return bd
 }
 

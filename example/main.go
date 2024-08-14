@@ -1,13 +1,20 @@
 package main
 
 import (
-	"encoding/binary"
 	"fmt"
 
 	"github.com/j32u4ukh/cntr"
 )
 
 func main() {
-	bs := cntr.NumberToBytes(int32(20), binary.LittleEndian)
-	fmt.Printf("bs: %+v\n", bs)
+	bd := cntr.NewBinaryData()
+	m := map[string][]byte{
+		"A": {1, 2, 3},
+		"B": {4, 5, 6, 7},
+		"C": {8, 9},
+	}
+	bd.AddMapStringByteArray(m)
+	bd.ResetIndex()
+	data := bd.PopMapStringByteArray()
+	fmt.Printf("data: %+v\n", data)
 }

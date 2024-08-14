@@ -1,6 +1,7 @@
 package cntr
 
 import "fmt"
+
 type Array[T Element] struct {
 	Elements []T
 }
