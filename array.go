@@ -1,7 +1,5 @@
 package cntr
 
-import "fmt"
-
 type Array[T Element] struct {
 	Elements []T
 }
@@ -11,43 +9,21 @@ func NewArray[T Element](elements ...T) *Array[T] {
 	return a
 }
 
-func (a *Array[T]) Append(v interface{}) {
-	element, ok := v.(T)
-	if ok {
-		a.Elements = append(a.Elements, element)
-	}
+func (a *Array[T]) Append(v T) {
+	a.Elements = append(a.Elements, v)
 }
 
-func (a *Array[T]) Add(v any) {
-	element, ok := v.(T)
-	if ok {
-		a.Elements = append(a.Elements, element)
-	}
-}
-
-func (a *Array[T]) Contains(v interface{}) bool {
+func (a *Array[T]) Contains(v T) bool {
 	idx := a.Find(v)
 	return idx != -1
 }
 
-func (a *Array[T]) Iter() func() (T, bool) {
-	fmt.Println("此函式即將棄用")
-	index := 0
-	return func() (val T, ok bool) {
-		if index >= a.Length() {
-			return
-		}
-		val, ok = a.Elements[index], true
-		index++
-		return
-	}
-}
-
-func (a *Array[T]) Get(index int) (any, bool) {
+func (a *Array[T]) Get(index int) (T, bool) {
 	if 0 <= index && index < a.Length() {
 		return a.Elements[index], true
 	}
-	return nil, false
+	var none T
+	return none, false
 }
 
 func (a *Array[T]) Set(index int, value T) {
@@ -94,7 +70,7 @@ func (a *Array[T]) Length() int {
 	return len(a.Elements)
 }
 
-func (a *Array[T]) Find(v interface{}) int {
+func (a *Array[T]) Find(v any) int {
 	for i, e := range a.Elements {
 		if e == v.(T) {
 			return i
@@ -103,10 +79,11 @@ func (a *Array[T]) Find(v interface{}) int {
 	return -1
 }
 
-func (a *Array[T]) Remove(v interface{}) interface{} {
+func (a *Array[T]) Remove(v T) T {
 	idx := a.Find(v)
 	if idx == -1 {
-		return nil
+		var none T
+		return none
 	}
 	a.Elements = append(a.Elements[:idx], a.Elements[idx+1:]...)
 	return v
