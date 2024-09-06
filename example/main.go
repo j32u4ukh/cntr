@@ -14,7 +14,6 @@ func main() {
 		"C": {8, 9},
 	}
 	bd.AddMapStringByteArray(m)
-	bd.ResetIndex()
 	data := bd.PopMapStringByteArray()
 	fmt.Printf("data: %+v\n", data)
 }

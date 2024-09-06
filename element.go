@@ -25,7 +25,7 @@ type NumberX interface {
 }
 
 type Number interface {
-	Int | UInt | NumberX
+	Int | UInt | Float
 }
 
 type BinaryElement interface {
