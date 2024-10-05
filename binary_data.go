@@ -3,6 +3,9 @@ package cntr
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 type BinaryData struct {
@@ -22,10 +25,13 @@ func NewBinaryData() *BinaryData {
 	return b
 }
 
-func LoadBinaryData(data []byte) *BinaryData {
+func LoadBinaryData(data []byte) (*BinaryData, error) {
 	b := NewBinaryData()
-	b.buffer.Write(data)
-	return b
+	_, err := b.buffer.Write(data)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to load data")
+	}
+	return b, nil
 }
 
 func (b *BinaryData) SetOrder(order binary.ByteOrder) {
@@ -48,92 +54,194 @@ func (b *BinaryData) Reset() {
 // 加入數據
 // ==================================================
 
-func (b *BinaryData) AddRawData(v []byte) {
-	b.buffer.Write(v)
-}
-
-func (b *BinaryData) AddBoolean(v bool) {
-	binary.Write(&b.buffer, b.order, v)
-}
-
-func (b *BinaryData) AddInt8(v int8) {
-	binary.Write(&b.buffer, b.order, v)
-}
-
-func (b *BinaryData) AddInt16(v int16) {
-	binary.Write(&b.buffer, b.order, v)
-}
-
-func (b *BinaryData) AddInt32(v int32) {
-	binary.Write(&b.buffer, b.order, v)
-}
-
-func (b *BinaryData) AddInt64(v int64) {
-	binary.Write(&b.buffer, b.order, v)
-}
-
-func (b *BinaryData) AddByte(v byte) {
-	b.buffer.WriteByte(v)
-}
-
-func (b *BinaryData) AddUInt16(v uint16) {
-	binary.Write(&b.buffer, b.order, v)
-}
-
-func (b *BinaryData) AddUInt32(v uint32) {
-	binary.Write(&b.buffer, b.order, v)
-}
-
-func (b *BinaryData) AddUInt64(v uint64) {
-	binary.Write(&b.buffer, b.order, v)
-}
-
-func (b *BinaryData) AddFloat32(v float32) {
-	binary.Write(&b.buffer, b.order, v)
-}
-
-func (b *BinaryData) AddFloat64(v float64) {
-	binary.Write(&b.buffer, b.order, v)
-}
-
-func (b *BinaryData) AddString(v string) {
-	b.AddByteArray([]byte(v))
-}
-
-func (b *BinaryData) AddByteArray(v []byte) {
-	length := uint32(len(v))
-	b.AddUInt32(length)
-	b.buffer.Write(v)
-}
-
-func (b *BinaryData) AddMapStringString(data map[string]string) {
-	length := uint32(len(data))
-	b.AddUInt32(length)
-	for k, v := range data {
-		b.AddString(k)
-		b.AddString(v)
+func (b *BinaryData) AddRawData(data []byte) error {
+	_, err := b.buffer.Write(data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %+v", data)
 	}
+	return nil
 }
 
-func (b *BinaryData) AddMapStringByteArray(data map[string][]byte) {
-	length := uint32(len(data))
-	b.AddUInt32(length)
-	for k, v := range data {
-		b.AddString(k)
-		b.AddByteArray(v)
+func (b *BinaryData) AddBoolean(data bool) error {
+	err := binary.Write(&b.buffer, b.order, data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %+v", data)
 	}
+	return nil
+}
+
+func (b *BinaryData) AddInt8(data int8) error {
+	err := binary.Write(&b.buffer, b.order, data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %d", data)
+	}
+	return nil
+}
+
+func (b *BinaryData) AddInt16(data int16) error {
+	err := binary.Write(&b.buffer, b.order, data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %d", data)
+	}
+	return nil
+}
+
+func (b *BinaryData) AddInt32(data int32) error {
+	err := binary.Write(&b.buffer, b.order, data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %d", data)
+	}
+	return nil
+}
+
+func (b *BinaryData) AddInt64(data int64) error {
+	err := binary.Write(&b.buffer, b.order, data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %d", data)
+	}
+	return nil
+}
+
+func (b *BinaryData) AddByte(data byte) error {
+	err := b.buffer.WriteByte(data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %d", data)
+	}
+	return nil
+}
+
+func (b *BinaryData) AddUInt16(data uint16) error {
+	err := binary.Write(&b.buffer, b.order, data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %d", data)
+	}
+	return nil
+}
+
+func (b *BinaryData) AddUInt32(data uint32) error {
+	err := binary.Write(&b.buffer, b.order, data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %d", data)
+	}
+	return nil
+}
+
+func (b *BinaryData) AddUInt64(data uint64) error {
+	err := binary.Write(&b.buffer, b.order, data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %d", data)
+	}
+	return nil
+}
+
+func (b *BinaryData) AddFloat32(data float32) error {
+	err := binary.Write(&b.buffer, b.order, data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %f", data)
+	}
+	return nil
+}
+
+func (b *BinaryData) AddFloat64(data float64) error {
+	err := binary.Write(&b.buffer, b.order, data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %f", data)
+	}
+	return nil
+}
+
+func (b *BinaryData) AddString(data string) error {
+	err := b.AddByteArray([]byte(data))
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %s", data)
+	}
+	return nil
+}
+
+func (b *BinaryData) AddByteArray(data []byte) error {
+	length := uint32(len(data))
+	err := b.AddUInt32(length)
+	if err != nil {
+		return errors.Wrapf(err, "Faield to write length of byte array: %d", length)
+	}
+	_, err = b.buffer.Write(data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write data: %+v", data)
+	}
+	return nil
+}
+
+func (b *BinaryData) AddFloat64Array(values []float64) error {
+	length := uint32(len(values))
+	err := b.AddUInt32(length)
+	if err != nil {
+		return errors.Wrapf(err, "Faield to write length of byte array: %d", length)
+	}
+	for _, value := range values {
+		err = b.AddFloat64(value)
+		if err != nil {
+			return errors.Wrapf(err, "Faield to write float64 data: %f", value)
+		}
+	}
+	return nil
+}
+
+func (b *BinaryData) AddMapStringString(data map[string]string) error {
+	length := uint32(len(data))
+	err := b.AddUInt32(length)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write length of map: %d", length)
+	}
+	for k, v := range data {
+		err = b.AddString(k)
+		if err != nil {
+			return errors.Wrapf(err, "Failed to write key of map: %s", k)
+		}
+		err = b.AddString(v)
+		if err != nil {
+			return errors.Wrapf(err, "Failed to write value of map: %s", v)
+		}
+	}
+	return nil
+}
+
+func (b *BinaryData) AddMapStringByteArray(data map[string][]byte) error {
+	length := uint32(len(data))
+	err := b.AddUInt32(length)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write length of map: %d", length)
+	}
+	for k, v := range data {
+		err = b.AddString(k)
+		if err != nil {
+			return errors.Wrapf(err, "Failed to write key of map: %s", k)
+		}
+		err = b.AddByteArray(v)
+		if err != nil {
+			return errors.Wrapf(err, "Failed to write value of map: %+v", v)
+		}
+	}
+	return nil
 }
 
 // ==================================================
 // 插入數據(目前只能插在最前面)
 // ==================================================
 
-func (b *BinaryData) InsertInt32(v int32) {
-	insertNumber(b, v)
+func (b *BinaryData) InsertInt32(data int32) error {
+	err := insertNumber(b, data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to insert int32 data: %d", data)
+	}
+	return nil
 }
 
-func (b *BinaryData) InsertUInt32(v uint32) {
-	insertNumber(b, v)
+func (b *BinaryData) InsertUInt32(data uint32) error {
+	err := insertNumber(b, data)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to insert uint32 data: %d", data)
+	}
+	return nil
 }
 
 // 取出全部的數據
@@ -141,100 +249,214 @@ func (b BinaryData) GetData() []byte {
 	return b.buffer.Bytes()
 }
 
-func (b *BinaryData) PopBoolean() bool {
-	boolean := b.PopByte()
-	return boolean == 1
+func (b *BinaryData) PopBoolean() (bool, error) {
+	boolean, err := b.PopByte()
+	if err != nil {
+		return false, errors.Wrap(err, "Failed to read bool data")
+	}
+	return boolean == 1, nil
 }
 
-func (b *BinaryData) PopInt8() int8 {
-	return popNumber[int8](b)
+func (b *BinaryData) PopInt8() (int8, error) {
+	value, err := popNumber[int8](b)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to read int8 data")
+	}
+	return value, nil
 }
 
-func (b *BinaryData) PopInt16() int16 {
-	return popNumber[int16](b)
+func (b *BinaryData) PopInt16() (int16, error) {
+	value, err := popNumber[int16](b)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to read int16 data")
+	}
+	return value, nil
 }
 
-func (b *BinaryData) PopInt32() int32 {
-	return popNumber[int32](b)
+func (b *BinaryData) PopInt32() (int32, error) {
+	value, err := popNumber[int32](b)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to read int32 data")
+	}
+	return value, nil
 }
 
-func (b *BinaryData) PopInt64() int64 {
-	return popNumber[int64](b)
+func (b *BinaryData) PopInt64() (int64, error) {
+	value, err := popNumber[int64](b)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to read int64 data")
+	}
+	return value, nil
 }
 
-func (b *BinaryData) PopByte() byte {
-	return popNumber[uint8](b)
+func (b *BinaryData) PopByte() (byte, error) {
+	value, err := popNumber[uint8](b)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to read uint8 data")
+	}
+	return value, nil
 }
 
-func (b *BinaryData) PopUInt16() uint16 {
-	return popNumber[uint16](b)
+func (b *BinaryData) PopUInt16() (uint16, error) {
+	value, err := popNumber[uint16](b)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to read uint16 data")
+	}
+	return value, nil
 }
 
-func (b *BinaryData) PopUInt32() uint32 {
-	return popNumber[uint32](b)
+func (b *BinaryData) PopUInt32() (uint32, error) {
+	value, err := popNumber[uint32](b)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to read uint32 data")
+	}
+	return value, nil
 }
 
-func (b *BinaryData) PopUInt64() uint64 {
-	return popNumber[uint64](b)
+func (b *BinaryData) PopUInt64() (uint64, error) {
+	value, err := popNumber[uint64](b)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to read uint64 data")
+	}
+	return value, nil
 }
 
-func (b *BinaryData) PopFloat32() float32 {
-	return popNumber[float32](b)
+func (b *BinaryData) PopFloat32() (float32, error) {
+	value, err := popNumber[float32](b)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to read float32 data")
+	}
+	return value, nil
 }
 
-func (b *BinaryData) PopFloat64() float64 {
-	return popNumber[float64](b)
+func (b *BinaryData) PopFloat64() (float64, error) {
+	value, err := popNumber[float64](b)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to read float64 data")
+	}
+	return value, nil
 }
 
-func (b *BinaryData) PopMapStringString() map[string]string {
+func (b *BinaryData) PopMapStringString() (map[string]string, error) {
 	result := map[string]string{}
-	length := b.PopInt32()
+	length, err := b.PopInt32()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to read length of map")
+	}
 	var key, value string
 	for i := int32(0); i < length; i++ {
-		key = b.PopString()
-		value = b.PopString()
+		key, err = b.PopString()
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to read key of map")
+		}
+		value, err = b.PopString()
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to read value of map")
+		}
 		result[key] = value
 	}
-	return result
+	return result, nil
 }
 
-func (b *BinaryData) PopMapStringByteArray() map[string][]byte {
+func (b *BinaryData) PopMapStringByteArray() (map[string][]byte, error) {
 	result := map[string][]byte{}
-	length := b.PopInt32()
+	length, err := b.PopInt32()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to read length of map")
+	}
 	var key string
 	var value []byte
 	for i := int32(0); i < length; i++ {
-		key = b.PopString()
-		value = b.PopByteArray()
+		key, err = b.PopString()
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to read key of map")
+		}
+		value, err = b.PopByteArray()
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to read value of map")
+		}
 		result[key] = value
 	}
-	return result
+	return result, nil
 }
 
-func (b *BinaryData) PopString() string {
-	result := b.PopByteArray()
-	return string(result)
+func (b *BinaryData) PopString() (string, error) {
+	result, err := b.PopByteArray()
+	if err != nil {
+		return "", errors.Wrap(err, "Faield to read string data")
+	}
+	return string(result), nil
 }
 
-func (b *BinaryData) PopByteArray() []byte {
-	length := b.PopUInt32()
+func (b *BinaryData) PopByteArray() ([]byte, error) {
+	length, err := b.PopUInt32()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to read length of byte array")
+	}
+	result, err := b.FetchByteArray(length)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to fetch byte array")
+	}
+	return result, nil
+}
+
+func (b *BinaryData) FetchByteArray(length uint32) ([]byte, error) {
 	result := make([]byte, length)
-	binary.Read(&b.buffer, b.order, result)
-	return result
+	err := binary.Read(&b.buffer, b.order, result)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to read byte array")
+	}
+	return result, nil
+}
+
+func (b *BinaryData) PopFloat64Array() ([]float64, error) {
+	length, err := b.PopUInt32()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to read length of byte array")
+	}
+	result := make([]float64, length)
+	for i := uint32(0); i < length; i++ {
+		result[i], err = b.PopFloat64()
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to read data of float64 array")
+		}
+	}
+	return result, nil
 }
 
 // ==================================================
 // Tools
 // ==================================================
 
-func insertNumber[T NumberX](b *BinaryData, v T) {
-	data := b.buffer.Bytes()
-	binary.Write(&b.buffer, b.order, v)
-	b.AddRawData(data)
+func insertNumber[T NumberX](b *BinaryData, v T) error {
+	data := b.GetData()
+	fmt.Printf("insertNumber raw data: %+v\n", data)
+	b.Reset()
+	fmt.Printf("cap: %d, len: %d\n", b.GetCapacity(), b.GetLength())
+	Resetdata := b.GetData()
+	fmt.Printf("Resetdata raw data: %+v\n", Resetdata)
+	err := binary.Write(&b.buffer, b.order, v)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to insert number: %+v", v)
+	}
+	fmt.Printf("Write number | cap: %d, len: %d\n", b.GetCapacity(), b.GetLength())
+	dataV := b.GetData()
+	fmt.Printf("inserted v raw data: %+v\n", dataV)
+	err = b.AddRawData(data)
+	if err != nil {
+		return errors.Wrap(err, "Failed to rewrite original data")
+	}
+	fmt.Printf("Write RawData | cap: %d, len: %d\n", b.GetCapacity(), b.GetLength())
+	data = b.GetData()
+	fmt.Printf("inserted raw data: %+v\n", data)
+	return nil
 }
 
-func popNumber[T NumberX](b *BinaryData) T {
+func popNumber[T NumberX](b *BinaryData) (T, error) {
 	var v T
-	binary.Read(&b.buffer, b.order, &v)
-	return v
+	err := binary.Read(&b.buffer, b.order, &v)
+	if err != nil {
+		return v, errors.Wrap(err, "Failed to read data")
+	}
+	return v, nil
 }

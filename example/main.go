@@ -14,6 +14,10 @@ func main() {
 		"C": {8, 9},
 	}
 	bd.AddMapStringByteArray(m)
-	data := bd.PopMapStringByteArray()
+	data, err := bd.PopMapStringByteArray()
+	if err != nil{
+		fmt.Printf("Failed to read MapStringByteArray")
+		return
+	}
 	fmt.Printf("data: %+v\n", data)
 }
