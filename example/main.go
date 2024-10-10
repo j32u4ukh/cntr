@@ -15,7 +15,7 @@ func main() {
 	}
 	bd.AddMapStringByteArray(m)
 	data, err := bd.PopMapStringByteArray()
-	if err != nil{
+	if err != nil {
 		fmt.Printf("Failed to read MapStringByteArray")
 		return
 	}
