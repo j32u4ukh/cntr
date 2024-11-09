@@ -5,17 +5,17 @@ import (
 	"sync"
 )
 
-type void struct{}
+type Void struct{}
 
-var null void
+var NULL Void
 
 type Set[T Element] struct {
-	Elements map[T]void
+	Elements map[T]Void
 	mu       sync.Mutex
 }
 
 func NewSet[T Element](elements ...T) *Set[T] {
-	s := &Set[T]{Elements: map[T]void{}}
+	s := &Set[T]{Elements: map[T]Void{}}
 	if len(elements) > 0 {
 		for _, element := range elements {
 			s.Add(element)
@@ -34,7 +34,7 @@ func (s *Set[T]) Add(element T) bool {
 		return false
 	}
 	// 加入成功
-	s.Elements[element] = null
+	s.Elements[element] = NULL
 	return true
 }
 

@@ -7,17 +7,13 @@ import (
 )
 
 func main() {
-	bd := cntr.NewBinaryData()
-	m := map[string][]byte{
-		"A": {1, 2, 3},
-		"B": {4, 5, 6, 7},
-		"C": {8, 9},
-	}
-	bd.AddMapStringByteArray(m)
-	data, err := bd.PopMapStringByteArray()
-	if err != nil {
-		fmt.Printf("Failed to read MapStringByteArray")
+	nm := cntr.NewNestedMap[int, int, int]()
+	nm.Set(2, 2, 4)
+	nm.Set(2, 3, 6)
+	v2, err := nm.Get(2, 3)
+	if err != nil{
+		fmt.Printf("err: %v", err)
 		return
 	}
-	fmt.Printf("data: %+v\n", data)
+	fmt.Printf("value: %d\n",v2)
 }
