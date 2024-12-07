@@ -46,7 +46,7 @@ func (nm *NestedMap[K1, K2, V]) GetByK1(k1 K1) (map[K2]V, error) {
 	nm.mu.Lock()
 	defer nm.mu.Unlock()
 	var value map[K2]V
-	var ok bool	
+	var ok bool
 	if value, ok = nm.dict[k1]; !ok {
 		return nil, errors.Errorf("Not found Key1: %+v.", k1)
 	}

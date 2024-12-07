@@ -13,21 +13,18 @@ type BinaryData struct {
 	buffer bytes.Buffer
 	// 數據位元組順序
 	order binary.ByteOrder
-	// 讀取數據用
-	reader *bytes.Reader
 }
 
 func NewBinaryData() *BinaryData {
 	b := &BinaryData{
-		order:  binary.LittleEndian,
-		reader: nil,
+		order: binary.LittleEndian,
 	}
 	return b
 }
 
 func LoadBinaryData(data []byte) (*BinaryData, error) {
 	b := NewBinaryData()
-	_, err := b.buffer.Write(data)
+	err := b.AddRawData(data)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to load data")
 	}
@@ -55,9 +52,14 @@ func (b *BinaryData) Reset() {
 // ==================================================
 
 func (b *BinaryData) AddRawData(data []byte) error {
-	_, err := b.buffer.Write(data)
-	if err != nil {
-		return errors.Wrapf(err, "Failed to write data: %+v", data)
+	if data == nil {
+		data = []byte{}
+	}
+	if len(data) > 0 {
+		_, err := b.buffer.Write(data)
+		if err != nil {
+			return errors.Wrapf(err, "Failed to write data: %+v", data)
+		}
 	}
 	return nil
 }
@@ -159,19 +161,30 @@ func (b *BinaryData) AddString(data string) error {
 }
 
 func (b *BinaryData) AddByteArray(data []byte) error {
+	// 明確處理 nil，將其視為空 slice
+	if data == nil {
+		data = []byte{}
+	}
 	length := uint32(len(data))
 	err := b.AddUInt32(length)
 	if err != nil {
 		return errors.Wrapf(err, "Faield to write length of byte array: %d", length)
 	}
-	_, err = b.buffer.Write(data)
-	if err != nil {
-		return errors.Wrapf(err, "Failed to write data: %+v", data)
+	// 只有在有數據時才進行寫入
+	if length > 0 {
+		_, err = b.buffer.Write(data)
+		if err != nil {
+			return errors.Wrapf(err, "Failed to write data: %+v", data)
+		}
 	}
 	return nil
 }
 
 func (b *BinaryData) AddFloat64Array(values []float64) error {
+	// 明確處理 nil，將其視為空 slice
+	if values == nil {
+		values = []float64{}
+	}
 	length := uint32(len(values))
 	err := b.AddUInt32(length)
 	if err != nil {
@@ -187,6 +200,9 @@ func (b *BinaryData) AddFloat64Array(values []float64) error {
 }
 
 func (b *BinaryData) AddMapStringString(data map[string]string) error {
+	if data == nil {
+		data = make(map[string]string)
+	}
 	length := uint32(len(data))
 	err := b.AddUInt32(length)
 	if err != nil {
@@ -206,6 +222,9 @@ func (b *BinaryData) AddMapStringString(data map[string]string) error {
 }
 
 func (b *BinaryData) AddMapStringByteArray(data map[string][]byte) error {
+	if data == nil {
+		data = make(map[string][]byte)
+	}
 	length := uint32(len(data))
 	err := b.AddUInt32(length)
 	if err != nil {
@@ -393,6 +412,10 @@ func (b *BinaryData) PopByteArray() ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to read length of byte array")
 	}
+	// 明確處理空陣列的情況
+	if length == 0 {
+		return []byte{}, nil
+	}
 	result, err := b.FetchByteArray(length)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to fetch byte array")
@@ -400,7 +423,12 @@ func (b *BinaryData) PopByteArray() ([]byte, error) {
 	return result, nil
 }
 
+// 讀取 byte 陣列
 func (b *BinaryData) FetchByteArray(length uint32) ([]byte, error) {
+	// 如果長度為 0，直接返回空 slice
+	if length == 0 {
+		return []byte{}, nil
+	}
 	result := make([]byte, length)
 	err := binary.Read(&b.buffer, b.order, result)
 	if err != nil {
@@ -413,6 +441,10 @@ func (b *BinaryData) PopFloat64Array() ([]float64, error) {
 	length, err := b.PopUInt32()
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to read length of byte array")
+	}
+	// 明確處理空陣列的情況
+	if length == 0 {
+		return []float64{}, nil
 	}
 	result := make([]float64, length)
 	for i := uint32(0); i < length; i++ {
