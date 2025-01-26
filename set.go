@@ -24,18 +24,18 @@ func NewSet[T Element](elements ...T) *Set[T] {
 	return s
 }
 
-// 加入數據，返回是否加入成功
-func (s *Set[T]) Add(element T) bool {
+// 加入數據，若已存在則忽略
+func (s *Set[T]) Add(elements ...T) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-
-	// 數據已存在，加入失敗
-	if s.Contains(element) {
-		return false
+	for _, element := range elements {
+		// 數據已存在，不加入
+		if s.Contains(element) {
+			continue
+		}
+		// 加入成功
+		s.Elements[element] = NULL
 	}
-	// 加入成功
-	s.Elements[element] = NULL
-	return true
 }
 
 // 數據是否存在
