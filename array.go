@@ -1,5 +1,50 @@
 package cntr
 
+import "math/rand"
+
+// 返回陣列中任一元素
+func RandomElement[T Element](elements []T) T {
+	length := len(elements)
+	index := RandInt(length)
+	return elements[index]
+}
+
+func ShuffleArray[T Element](arr []T) {
+	applyRand(func(randGenerator *rand.Rand) {
+		var i, j int
+		for i = len(arr) - 1; i > 0; i-- {
+			// 隨機選取索引
+			j = randGenerator.Intn(i + 1)
+			// 交換元素
+			arr[i], arr[j] = arr[j], arr[i]
+		}
+	})
+}
+
+func ShuffleIndexs(length int) [][]int {
+	indexes := [][]int{}
+	applyRand(func(randGenerator *rand.Rand) {
+		var i, j int
+		for i = length - 1; i > 0; i-- {
+			// 隨機選取索引
+			j = randGenerator.Intn(i + 1)
+			// 紀錄要交換的索引
+			indexes = append(indexes, []int{i, j})
+		}
+	})
+	return indexes
+}
+
+func ModifyIndex(index int, length int) int {
+	if index < 0 {
+		return 0
+	} else if index >= length {
+		return length - 1
+	} else {
+		return index
+	}
+}
+
 type Array[T Element] struct {
 	Elements []T
 }
@@ -119,14 +164,4 @@ func (a *Array[T]) Clone() *Array[T] {
 	copy(elements, a.Elements)
 	clone := NewArray(elements...)
 	return clone
-}
-
-func ModifyIndex(index int, length int) int {
-	if index < 0 {
-		return 0
-	} else if index >= length {
-		return length - 1
-	} else {
-		return index
-	}
 }
