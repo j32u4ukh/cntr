@@ -13,6 +13,10 @@ func NewIndexedItem(index int, item any) *IndexedItem {
 	}
 }
 
+func (ii *IndexedItem) GetIndex() int {
+	return ii.Index
+}
+
 func (ii *IndexedItem) GetItem() any {
 	return ii.Item
 }
