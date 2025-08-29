@@ -64,3 +64,34 @@ func IsSliceEqual[T Element](a, b []T) bool {
 	}
 	return true
 }
+
+// Slice3DArray 三維子陣列：先按高度（Y 軸），再按寬度（X 軸），最後按深度（Z 軸）
+func SliceArray3D[T Element](array [][][]T, zStart, zEnd, yStart, yEnd, xStart, xEnd int) [][][]T {
+	// 檢查索引是否合法
+	if yStart < 0 || yEnd > len(array) || xStart < 0 || xEnd > len(array[0]) ||
+		zStart < 0 || zEnd > len(array[0][0]) || yStart > yEnd || xStart > xEnd || zStart > zEnd {
+		return nil
+	}
+	// 初始化三維子陣列
+	subArray := make([][][]T, zEnd-zStart)
+	// 初始化每個切片的寬度部分
+	for i := zStart; i < zEnd; i++ {
+		subArray[i-zStart] = SliceArray2D(array[i], yStart, yEnd, xStart, xEnd)
+	}
+	return subArray
+}
+
+// SliceArray2D 函數傳入二維陣列以及 X、Y 軸的開始與結束索引，返回子二維陣列（不包含結束索引值）
+func SliceArray2D[T Element](array [][]T, yStart, yEnd, xStart, xEnd int) [][]T {
+	// 檢查索引是否合法
+	if yStart < 0 || yEnd > len(array) || xStart < 0 || xEnd > len(array[0]) || xStart > xEnd || yStart > yEnd {
+		return nil
+	}
+	// 初始化二子維陣列
+	subArray := make([][]T, yEnd-yStart)
+	for i := yStart; i < yEnd; i++ {
+		// 擷取每一行的子切片
+		subArray[i-yStart] = array[i][xStart:xEnd]
+	}
+	return subArray
+}

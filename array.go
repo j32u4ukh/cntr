@@ -1,6 +1,49 @@
 package cntr
 
-import "fmt"
+import "math/rand"
+
+// 返回陣列中任一元素
+func RandomElement[T Element](elements []T) T {
+	length := len(elements)
+	index := RandInt(length)
+	return elements[index]
+}
+
+func ShuffleArray[T Element](arr []T) {
+	applyRand(func(randGenerator *rand.Rand) {
+		var i, j int
+		for i = len(arr) - 1; i > 0; i-- {
+			// 隨機選取索引
+			j = randGenerator.Intn(i + 1)
+			// 交換元素
+			arr[i], arr[j] = arr[j], arr[i]
+		}
+	})
+}
+
+func ShuffleIndexs(length int) [][]int {
+	indexes := [][]int{}
+	applyRand(func(randGenerator *rand.Rand) {
+		var i, j int
+		for i = length - 1; i > 0; i-- {
+			// 隨機選取索引
+			j = randGenerator.Intn(i + 1)
+			// 紀錄要交換的索引
+			indexes = append(indexes, []int{i, j})
+		}
+	})
+	return indexes
+}
+
+func ModifyIndex(index int, length int) int {
+	if index < 0 {
+		return 0
+	} else if index >= length {
+		return length - 1
+	} else {
+		return index
+	}
+}
 
 type Array[T Element] struct {
 	Elements []T
@@ -11,43 +54,21 @@ func NewArray[T Element](elements ...T) *Array[T] {
 	return a
 }
 
-func (a *Array[T]) Append(v interface{}) {
-	element, ok := v.(T)
-	if ok {
-		a.Elements = append(a.Elements, element)
-	}
+func (a *Array[T]) Append(v T) {
+	a.Elements = append(a.Elements, v)
 }
 
-func (a *Array[T]) Add(v any) {
-	element, ok := v.(T)
-	if ok {
-		a.Elements = append(a.Elements, element)
-	}
-}
-
-func (a *Array[T]) Contains(v interface{}) bool {
+func (a *Array[T]) Contains(v T) bool {
 	idx := a.Find(v)
 	return idx != -1
 }
 
-func (a *Array[T]) Iter() func() (T, bool) {
-	fmt.Println("此函式即將棄用")
-	index := 0
-	return func() (val T, ok bool) {
-		if index >= a.Length() {
-			return
-		}
-		val, ok = a.Elements[index], true
-		index++
-		return
-	}
-}
-
-func (a *Array[T]) Get(index int) (any, bool) {
+func (a *Array[T]) Get(index int) (T, bool) {
 	if 0 <= index && index < a.Length() {
 		return a.Elements[index], true
 	}
-	return nil, false
+	var none T
+	return none, false
 }
 
 func (a *Array[T]) Set(index int, value T) {
@@ -94,7 +115,7 @@ func (a *Array[T]) Length() int {
 	return len(a.Elements)
 }
 
-func (a *Array[T]) Find(v interface{}) int {
+func (a *Array[T]) Find(v any) int {
 	for i, e := range a.Elements {
 		if e == v.(T) {
 			return i
@@ -103,10 +124,11 @@ func (a *Array[T]) Find(v interface{}) int {
 	return -1
 }
 
-func (a *Array[T]) Remove(v interface{}) interface{} {
+func (a *Array[T]) Remove(v T) T {
 	idx := a.Find(v)
 	if idx == -1 {
-		return nil
+		var none T
+		return none
 	}
 	a.Elements = append(a.Elements[:idx], a.Elements[idx+1:]...)
 	return v
@@ -142,14 +164,4 @@ func (a *Array[T]) Clone() *Array[T] {
 	copy(elements, a.Elements)
 	clone := NewArray(elements...)
 	return clone
-}
-
-func ModifyIndex(index int, length int) int {
-	if index < 0 {
-		return 0
-	} else if index >= length {
-		return length - 1
-	} else {
-		return index
-	}
 }

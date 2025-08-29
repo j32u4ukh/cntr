@@ -33,6 +33,8 @@ func (b *Bivalue[K1, K2, V]) GetValue() V {
 	return b.value
 }
 
+// dict1 根據 k1 取得索引值, dict2 根據 k2 取得索引值, 索引值對應到 dict3 當中的數據
+// 同一組的 k1, k2 對應到
 type BikeyMap[K1 Element, K2 Element, V any] struct {
 	dict1 map[K1]int64
 	dict2 map[K2]int64
@@ -52,9 +54,9 @@ func NewBikeyMap[K1 Element, K2 Element, V any]() *BikeyMap[K1, K2, V] {
 }
 
 func (m *BikeyMap[K1, K2, V]) Add(key1 K1, key2 K2, value V) error {
-	var ok bool
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	var ok bool
 	if _, ok = m.dict1[key1]; ok {
 		return errors.Errorf("Key1 %+v has been exists.", key1)
 	}
@@ -80,11 +82,11 @@ func (m *BikeyMap[K1, K2, V]) set(key1 K1, key2 K2, value V) {
 
 // 根據兩個對應的 Key 來取值，也可確定兩個 Key 是一組的。
 func (m *BikeyMap[K1, K2, V]) GetByKeys(key1 K1, key2 K2) (V, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	var index1, index2 int64
 	var ok bool
 	var v V
-	m.mu.Lock()
-	defer m.mu.Unlock()
 	if index1, ok = m.dict1[key1]; ok {
 		if index2, ok = m.dict2[key2]; ok && (index1 == index2) {
 			if bv, ok := m.dict3[index1]; ok {
