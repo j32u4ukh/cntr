@@ -9,7 +9,7 @@ func RandomElement[T Element](elements []T) T {
 	return elements[index]
 }
 
-func ShuffleArray[T Element](arr []T) {
+func ShuffleArray[T any](arr []T) {
 	applyRand(func(randGenerator *rand.Rand) {
 		var i, j int
 		for i = len(arr) - 1; i > 0; i-- {
@@ -124,14 +124,14 @@ func (a *Array[T]) Find(v any) int {
 	return -1
 }
 
-func (a *Array[T]) Remove(v T) T {
+func (a *Array[T]) Remove(v T) (T, bool) {
 	idx := a.Find(v)
 	if idx == -1 {
 		var none T
-		return none
+		return none, false
 	}
 	a.Elements = append(a.Elements[:idx], a.Elements[idx+1:]...)
-	return v
+	return v, true
 }
 
 func (a *Array[T]) IsEquals(other *Array[T], isStrict bool) bool {
