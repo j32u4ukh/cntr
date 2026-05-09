@@ -21,7 +21,9 @@ type Set[T Element] struct {
 func NewSet[T Element](elements ...T) *Set[T] {
 	s := &Set[T]{Elements: make(map[T]Void)}
 	if len(elements) > 0 {
-		s.Add(elements...)
+		for _, element := range elements {
+			s.Add(element)
+		}
 	}
 	return s
 }
@@ -35,20 +37,23 @@ type HashableSet[T IHashable[T]] struct {
 func NewHashableSet[T IHashable[T]](elements ...T) *HashableSet[T] {
 	s := &HashableSet[T]{Elements: make(map[string]T)}
 	if len(elements) > 0 {
-		s.Add(elements...)
+		for _, element := range elements {
+			s.Add(element)
+		}
 	}
 	return s
 }
 
 // Set 的方法
-func (s *Set[T]) Add(elements ...T) {
+// 加入數據，返回是否成功添加（元素不存在時返回 true，已存在時返回 false）
+func (s *Set[T]) Add(element T) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	for _, element := range elements {
-		if !s.containsUnsafe(element) {
-			s.Elements[element] = NULL
-		}
+	if s.containsUnsafe(element) {
+		return false
 	}
+	s.Elements[element] = NULL
+	return true
 }
 
 func (s *Set[T]) Contains(element T) bool {
@@ -101,7 +106,7 @@ func (s *Set[T]) Clear() {
 
 func (s *Set[T]) Clone() *Set[T] {
 	elements := s.ToSlice()
-	return NewSet[T](elements...)
+	return NewSet(elements...)
 }
 
 func (s *Set[T]) String() string {
@@ -110,12 +115,16 @@ func (s *Set[T]) String() string {
 }
 
 // HashableSet 的方法
-func (s *HashableSet[T]) Add(elements ...T) {
+// 加入數據，返回是否成功添加（元素不存在時返回 true，已存在時返回 false）
+func (s *HashableSet[T]) Add(element T) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	for _, element := range elements {
-		s.Elements[element.GetHash()] = element
+	key := element.GetHash()
+	if _, ok := s.Elements[key]; ok {
+		return false
 	}
+	s.Elements[key] = element
+	return true
 }
 
 func (s *HashableSet[T]) Contains(element T) bool {
