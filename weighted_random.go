@@ -4,22 +4,22 @@ import (
 	"sort"
 )
 
-// WeightedSelector 加權隨機選擇器
-type WeightedSelector struct {
+// WeightedRandom 加權隨機選擇器
+type WeightedRandom struct {
 	tree           *BinaryTree
 	totalWeight    int
 	randomStrategy RandomStrategy // 注入策略
 }
 
-func NewWeightedSelector() *WeightedSelector {
-	return &WeightedSelector{
+func NewWeightedSelector() *WeightedRandom {
+	return &WeightedRandom{
 		tree:           &BinaryTree{},
 		randomStrategy: nil,
 	}
 }
 
 // Init 使用字典初始化（僅納入權重 > 0；鍵依字串排序以固定累加順序）
-func (s *WeightedSelector) Init(weights map[string]int) {
+func (s *WeightedRandom) Init(weights map[string]int) {
 	var pairs []IndexedItem
 	for k, w := range weights {
 		if w > 0 {
@@ -49,7 +49,7 @@ func (s *WeightedSelector) Init(weights map[string]int) {
 	s.buildBalancedTree(keys, prefixes)
 }
 
-func (s *WeightedSelector) buildBalancedTree(keys []string, prefixes []int) {
+func (s *WeightedRandom) buildBalancedTree(keys []string, prefixes []int) {
 	var recruit func(int, int)
 	recruit = func(start, end int) {
 		if start > end {
@@ -79,12 +79,12 @@ func maxPrefixLessThan(root *TreeNode, prefix int) *TreeNode {
 }
 
 // SetStrategy 允許動態切換隨機方案
-func (s *WeightedSelector) SetStrategy(strategy RandomStrategy) {
+func (s *WeightedRandom) SetStrategy(strategy RandomStrategy) {
 	s.randomStrategy = strategy
 }
 
 // Select 執行加權隨機抽取
-func (s *WeightedSelector) Select() string {
+func (s *WeightedRandom) Select() string {
 	if s.totalWeight <= 0 || s.tree.Root == nil {
 		return ""
 	}
