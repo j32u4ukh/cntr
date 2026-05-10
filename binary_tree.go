@@ -94,3 +94,81 @@ func (t *BinaryTree) cmp() Compare {
 	}
 	return DefaultIntCompare
 }
+
+// TraversePreorder 前序遍歷（根、左、右）。root 為 nil 時回傳 nil。
+func TraversePreorder(root *TreeNode) []*KvPair[string] {
+	if root == nil {
+		return nil
+	}
+	result := make([]*KvPair[string], 0)
+	var walk func(*TreeNode)
+	walk = func(n *TreeNode) {
+		if n == nil {
+			return
+		}
+		result = append(result, &KvPair[string]{Key: n.Key, Value: n.Value})
+		walk(n.Left)
+		walk(n.Right)
+	}
+	walk(root)
+	return result
+}
+
+// TraverseInorder 中序遍歷（左、根、右）。root 為 nil 時回傳 nil。
+func TraverseInorder(root *TreeNode) []*KvPair[string] {
+	if root == nil {
+		return nil
+	}
+	result := make([]*KvPair[string], 0)
+	var walk func(*TreeNode)
+	walk = func(n *TreeNode) {
+		if n == nil {
+			return
+		}
+		walk(n.Left)
+		result = append(result, &KvPair[string]{Key: n.Key, Value: n.Value})
+		walk(n.Right)
+	}
+	walk(root)
+	return result
+}
+
+// TraversePostorder 後序遍歷（左、右、根）。root 為 nil 時回傳 nil。
+func TraversePostorder(root *TreeNode) []*KvPair[string] {
+	if root == nil {
+		return nil
+	}
+	result := make([]*KvPair[string], 0)
+	var walk func(*TreeNode)
+	walk = func(n *TreeNode) {
+		if n == nil {
+			return
+		}
+		walk(n.Left)
+		walk(n.Right)
+		result = append(result, &KvPair[string]{Key: n.Key, Value: n.Value})
+	}
+	walk(root)
+	return result
+}
+
+// TraverseLevelOrder 由上往下遍歷（廣度優先，逐層、同層由左至右）。root 為 nil 時回傳 nil。
+func TraverseLevelOrder(root *TreeNode) []*KvPair[string] {
+	if root == nil {
+		return nil
+	}
+	q := []*TreeNode{root}
+	result := make([]*KvPair[string], 0)
+	for len(q) > 0 {
+		n := q[0]
+		q = q[1:]
+		result = append(result, &KvPair[string]{Key: n.Key, Value: n.Value})
+		if n.Left != nil {
+			q = append(q, n.Left)
+		}
+		if n.Right != nil {
+			q = append(q, n.Right)
+		}
+	}
+	return result
+}
