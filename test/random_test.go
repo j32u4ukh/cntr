@@ -31,39 +31,23 @@ func TestDirectRandom_forwardsRandInt(t *testing.T) {
 	}
 }
 
-func TestBufferedShuffle_valuesInRange(t *testing.T) {
-	buf := cntr.NewBufferedShuffle(8)
-	tw := 37
+func TestBufferedRandom_valuesInRange(t *testing.T) {
+	buf := cntr.NewBufferedRandom[int](8)
+	buf.Init(0, 37)
 	for i := 0; i < 64; i++ {
-		v := buf.Next(tw)
-		if v < 0 || v >= tw {
-			t.Fatalf("BufferedShuffle.Next out of range: %d (tw=%d)", v, tw)
+		v := buf.Next()
+		if v < 0 || v >= 37 {
+			t.Fatalf("BufferedRandom.Next out of range: %d (upper=37)", v)
 		}
 	}
 }
 
-func TestBufferedShuffle_refillUsesRandInt(t *testing.T) {
-	orig := cntr.RandInt
-	defer func() { cntr.RandInt = orig }()
-	var calls int
-	cntr.RandInt = func(n int) int {
-		calls++
-		if n != 7 {
-			t.Fatalf("unexpected totalWeight n=%d", n)
+func TestBufferedRandom_singleValueRange(t *testing.T) {
+	buf := cntr.NewBufferedRandom[int](5)
+	buf.Init(0, 1)
+	for i := 0; i < 40; i++ {
+		if buf.Next() != 0 {
+			t.Fatal("Init(0,1) should always yield 0")
 		}
-		return 2
-	}
-	buf := cntr.NewBufferedShuffle(3)
-	for i := 0; i < 3; i++ {
-		if buf.Next(7) != 2 {
-			t.Fatal("expected patched RandInt value")
-		}
-	}
-	if calls != 3 {
-		t.Fatalf("first refill: RandInt calls=%d", calls)
-	}
-	buf.Next(7)
-	if calls != 6 {
-		t.Fatalf("after second refill: RandInt calls=%d", calls)
 	}
 }

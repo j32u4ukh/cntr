@@ -17,13 +17,10 @@ func ExampleDirectRandom_Next() {
 	// 49
 }
 
-func ExampleNewBufferedShuffle() {
-	orig := cntr.RandInt
-	cntr.RandInt = func(n int) int { return 1 }
-	defer func() { cntr.RandInt = orig }()
-
-	buf := cntr.NewBufferedShuffle(2)
-	fmt.Println(buf.Next(10), buf.Next(10))
+func ExampleNewBufferedRandom() {
+	buf := cntr.NewBufferedRandom[int](2)
+	buf.Init(0, 1)
+	fmt.Println(buf.Next(), buf.Next())
 	// Output:
-	// 1 1
+	// 0 0
 }

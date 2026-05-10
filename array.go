@@ -10,27 +10,23 @@ func RandomElement[T Element](elements []T) T {
 }
 
 func ShuffleArray[T any](arr []T) {
-	applyRand(func(randGenerator *rand.Rand) {
-		var i, j int
-		for i = len(arr) - 1; i > 0; i-- {
-			// 隨機選取索引
-			j = randGenerator.Intn(i + 1)
-			// 交換元素
+	withRand(func(randGenerator *rand.Rand) struct{} {
+		for i := len(arr) - 1; i > 0; i-- {
+			j := randGenerator.Intn(i + 1)
 			arr[i], arr[j] = arr[j], arr[i]
 		}
+		return struct{}{}
 	})
 }
 
 func ShuffleIndexs(length int) [][]int {
 	indexes := [][]int{}
-	applyRand(func(randGenerator *rand.Rand) {
-		var i, j int
-		for i = length - 1; i > 0; i-- {
-			// 隨機選取索引
-			j = randGenerator.Intn(i + 1)
-			// 紀錄要交換的索引
+	withRand(func(randGenerator *rand.Rand) struct{} {
+		for i := length - 1; i > 0; i-- {
+			j := randGenerator.Intn(i + 1)
 			indexes = append(indexes, []int{i, j})
 		}
+		return struct{}{}
 	})
 	return indexes
 }

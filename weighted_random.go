@@ -4,17 +4,19 @@ import (
 	"sort"
 )
 
+const weightedRandomBufferSize = 64
+
 // WeightedRandom 加權隨機選擇器
 type WeightedRandom struct {
-	tree           *BinaryTree
-	totalWeight    int
-	randomStrategy RandomStrategy // 注入策略
+	tree        *BinaryTree
+	totalWeight int
+	rnd         *BufferedRandom[int]
 }
 
 func NewWeightedSelector() *WeightedRandom {
 	return &WeightedRandom{
-		tree:           &BinaryTree{},
-		randomStrategy: nil,
+		tree: &BinaryTree{},
+		rnd:  NewBufferedRandom[int](weightedRandomBufferSize),
 	}
 }
 
@@ -47,6 +49,8 @@ func (s *WeightedRandom) Init(weights map[string]int) {
 
 	s.tree.Root = nil
 	s.buildBalancedTree(keys, prefixes)
+
+	s.rnd.Init(0, s.totalWeight)
 }
 
 func (s *WeightedRandom) buildBalancedTree(keys []string, prefixes []int) {
@@ -78,22 +82,12 @@ func maxPrefixLessThan(root *TreeNode, prefix int) *TreeNode {
 	return cand
 }
 
-// SetStrategy 允許動態切換隨機方案
-func (s *WeightedRandom) SetStrategy(strategy RandomStrategy) {
-	s.randomStrategy = strategy
-}
-
-// Select 執行加權隨機抽取
+// Select 執行加權隨機抽取（目標值來自 BufferedRandom[int]，區間 [0, totalWeight)，與 Init 時一致）。
 func (s *WeightedRandom) Select() string {
 	if s.totalWeight <= 0 || s.tree.Root == nil {
 		return ""
 	}
-	// 如果未設定策略，預設使用即時隨機
-	if s.randomStrategy == nil {
-		s.randomStrategy = &DirectRandom{}
-	}
-	// 根據策略獲取隨機數
-	target := s.randomStrategy.Next(s.totalWeight)
+	target := s.rnd.Next()
 	// --- 以下維持原本的 BST 搜尋邏輯 ---
 	curr := s.tree.Root
 	for curr != nil {
