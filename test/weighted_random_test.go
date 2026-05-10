@@ -7,7 +7,7 @@ import (
 )
 
 func TestWeightedRandom_Select_empty(t *testing.T) {
-	w := cntr.NewWeightedSelector()
+	w := cntr.NewWeightedRandom[int]()
 	w.Init(nil)
 	if w.Select() != "" {
 		t.Fatal("empty init should select empty string")
@@ -19,7 +19,7 @@ func TestWeightedRandom_Select_empty(t *testing.T) {
 }
 
 func TestWeightedRandom_Select_singleKey(t *testing.T) {
-	w := cntr.NewWeightedSelector()
+	w := cntr.NewWeightedRandom[int]()
 	w.Init(map[string]int{"only": 100})
 	for i := 0; i < 50; i++ {
 		if got := w.Select(); got != "only" {
@@ -29,7 +29,7 @@ func TestWeightedRandom_Select_singleKey(t *testing.T) {
 }
 
 func TestWeightedRandom_Select_twoKeys_inRange(t *testing.T) {
-	w := cntr.NewWeightedSelector()
+	w := cntr.NewWeightedRandom[int]()
 	w.Init(map[string]int{"a": 30, "b": 70})
 	for i := 0; i < 200; i++ {
 		k := w.Select()
@@ -40,7 +40,7 @@ func TestWeightedRandom_Select_twoKeys_inRange(t *testing.T) {
 }
 
 func TestWeightedRandom_Select_keySortOrder_bucketBoundary(t *testing.T) {
-	w := cntr.NewWeightedSelector()
+	w := cntr.NewWeightedRandom[int]()
 	w.Init(map[string]int{"z": 10, "m": 10})
 	for i := 0; i < 300; i++ {
 		k := w.Select()

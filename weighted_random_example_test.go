@@ -7,7 +7,7 @@ import (
 )
 
 func ExampleWeightedRandom_Select() {
-	w := cntr.NewWeightedSelector()
+	w := cntr.NewWeightedRandom[int]()
 	w.Init(map[string]int{"pick": 10})
 	fmt.Println(w.Select())
 	// Output:

@@ -37,7 +37,7 @@ func runWeightedRandomSelectExample(n int) {
 		fmt.Println("錯誤: --trials / -n 須 ≥1")
 		return
 	}
-	w := cntr.NewWeightedSelector()
+	w := cntr.NewWeightedRandom[int]()
 	m := map[string]int{
 		"apple":    35,
 		"banana":   35,
