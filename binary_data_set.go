@@ -1,10 +1,22 @@
 package cntr
 
 import (
-	"encoding/binary"
-
 	"github.com/pkg/errors"
 )
+
+// ==================================================
+// 統一標量寫入接頭
+// ==================================================
+
+// AddNumber 統一處理所有單一數字寫入，內部依型態自動選擇 Varint / Uvarint / IEEE 754 編碼。
+// 新程式碼建議直接使用此接頭；下方 AddInt32、AddFloat64 等為向後相容的薄包裝。
+func (b *BinaryData) AddNumber(v any) error {
+	err := b.InsertNumber(v)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to write scalar number data: %+v", v)
+	}
+	return nil
+}
 
 // ==================================================
 // 加入數據
@@ -23,16 +35,18 @@ func (b *BinaryData) AddRawData(data []byte) error {
 	return nil
 }
 
+// AddBoolean 以變長 uint8 寫入（0 或 1），佔用 1 Byte。
 func (b *BinaryData) AddBoolean(data bool) error {
-	err := binary.Write(&b.buffer, b.order, data)
-	if err != nil {
-		return errors.Wrapf(err, "Failed to write data: %+v", data)
+	if data {
+		return b.AddNumber(uint8(1))
 	}
-	return nil
+	return b.AddNumber(uint8(0))
 }
 
+// 以下為各型態的相容寫入接頭，內部皆委派至 AddNumber。
+
 func (b *BinaryData) AddInt8(data int8) error {
-	err := binary.Write(&b.buffer, b.order, data)
+	err := b.AddNumber(data)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to write data: %d", data)
 	}
@@ -40,7 +54,7 @@ func (b *BinaryData) AddInt8(data int8) error {
 }
 
 func (b *BinaryData) AddInt16(data int16) error {
-	err := binary.Write(&b.buffer, b.order, data)
+	err := b.AddNumber(data)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to write data: %d", data)
 	}
@@ -48,7 +62,7 @@ func (b *BinaryData) AddInt16(data int16) error {
 }
 
 func (b *BinaryData) AddInt32(data int32) error {
-	err := binary.Write(&b.buffer, b.order, data)
+	err := b.AddNumber(data)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to write data: %d", data)
 	}
@@ -56,7 +70,7 @@ func (b *BinaryData) AddInt32(data int32) error {
 }
 
 func (b *BinaryData) AddInt64(data int64) error {
-	err := binary.Write(&b.buffer, b.order, data)
+	err := b.AddNumber(data)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to write data: %d", data)
 	}
@@ -64,7 +78,7 @@ func (b *BinaryData) AddInt64(data int64) error {
 }
 
 func (b *BinaryData) AddByte(data byte) error {
-	err := b.buffer.WriteByte(data)
+	err := b.AddNumber(data)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to write data: %d", data)
 	}
@@ -72,7 +86,7 @@ func (b *BinaryData) AddByte(data byte) error {
 }
 
 func (b *BinaryData) AddUInt16(data uint16) error {
-	err := binary.Write(&b.buffer, b.order, data)
+	err := b.AddNumber(data)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to write data: %d", data)
 	}
@@ -80,7 +94,7 @@ func (b *BinaryData) AddUInt16(data uint16) error {
 }
 
 func (b *BinaryData) AddUInt32(data uint32) error {
-	err := binary.Write(&b.buffer, b.order, data)
+	err := b.AddNumber(data)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to write data: %d", data)
 	}
@@ -88,7 +102,7 @@ func (b *BinaryData) AddUInt32(data uint32) error {
 }
 
 func (b *BinaryData) AddUInt64(data uint64) error {
-	err := binary.Write(&b.buffer, b.order, data)
+	err := b.AddNumber(data)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to write data: %d", data)
 	}
@@ -96,7 +110,7 @@ func (b *BinaryData) AddUInt64(data uint64) error {
 }
 
 func (b *BinaryData) AddFloat32(data float32) error {
-	err := binary.Write(&b.buffer, b.order, data)
+	err := b.AddNumber(data)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to write data: %f", data)
 	}
@@ -104,23 +118,21 @@ func (b *BinaryData) AddFloat32(data float32) error {
 }
 
 func (b *BinaryData) AddFloat64(data float64) error {
-	err := binary.Write(&b.buffer, b.order, data)
+	err := b.AddNumber(data)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to write data: %f", data)
 	}
 	return nil
 }
 
+// AddString 將字串壓為 byte 切片，交給陣列協議寫入「長度 + 數據」。
 func (b *BinaryData) AddString(data string) error {
-	err := b.AddByteArray([]byte(data))
-	if err != nil {
-		return errors.Wrapf(err, "Failed to write data: %s", data)
-	}
-	return nil
+	return b.AddByteArray([]byte(data))
 }
 
 // ==================================================
 // Add Array
+// 協議：先寫入變長長度前綴，再依序寫入各元素（元素本身亦為變長編碼）。
 // ==================================================
 
 func (b *BinaryData) AddInt32Array(values []int32) error {
@@ -129,13 +141,11 @@ func (b *BinaryData) AddInt32Array(values []int32) error {
 		values = []int32{}
 	}
 	length := uint32(len(values))
-	err := b.AddUInt32(length)
-	if err != nil {
+	if err := b.AddNumber(length); err != nil {
 		return errors.Wrapf(err, "Faield to write length of byte array: %d", length)
 	}
 	for _, value := range values {
-		err = b.AddInt32(value)
-		if err != nil {
+		if err := b.AddNumber(value); err != nil {
 			return errors.Wrapf(err, "Faield to write int32 data: %d", value)
 		}
 	}
@@ -148,13 +158,11 @@ func (b *BinaryData) AddInt64Array(values []int64) error {
 		values = []int64{}
 	}
 	length := uint32(len(values))
-	err := b.AddUInt32(length)
-	if err != nil {
+	if err := b.AddNumber(length); err != nil {
 		return errors.Wrapf(err, "Faield to write length of byte array: %d", length)
 	}
 	for _, value := range values {
-		err = b.AddInt64(value)
-		if err != nil {
+		if err := b.AddNumber(value); err != nil {
 			return errors.Wrapf(err, "Faield to write int64 data: %d", value)
 		}
 	}
@@ -167,13 +175,12 @@ func (b *BinaryData) AddByteArray(data []byte) error {
 		data = []byte{}
 	}
 	length := uint32(len(data))
-	err := b.AddUInt32(length)
-	if err != nil {
+	if err := b.AddNumber(length); err != nil {
 		return errors.Wrapf(err, "Faield to write length of byte array: %d", length)
 	}
 	// 只有在有數據時才進行寫入
 	if length > 0 {
-		_, err = b.buffer.Write(data)
+		_, err := b.buffer.Write(data)
 		if err != nil {
 			return errors.Wrapf(err, "Failed to write data: %+v", data)
 		}
@@ -187,13 +194,11 @@ func (b *BinaryData) AddUInt32Array(values []uint32) error {
 		values = []uint32{}
 	}
 	length := uint32(len(values))
-	err := b.AddUInt32(length)
-	if err != nil {
+	if err := b.AddNumber(length); err != nil {
 		return errors.Wrapf(err, "Faield to write length of byte array: %d", length)
 	}
 	for _, value := range values {
-		err = b.AddUInt32(value)
-		if err != nil {
+		if err := b.AddNumber(value); err != nil {
 			return errors.Wrapf(err, "Faield to write uint32 data: %d", value)
 		}
 	}
@@ -206,13 +211,11 @@ func (b *BinaryData) AddUInt64Array(values []uint64) error {
 		values = []uint64{}
 	}
 	length := uint32(len(values))
-	err := b.AddUInt32(length)
-	if err != nil {
+	if err := b.AddNumber(length); err != nil {
 		return errors.Wrapf(err, "Faield to write length of byte array: %d", length)
 	}
 	for _, value := range values {
-		err = b.AddUInt64(value)
-		if err != nil {
+		if err := b.AddNumber(value); err != nil {
 			return errors.Wrapf(err, "Faield to write uint64 data: %d", value)
 		}
 	}
@@ -225,13 +228,11 @@ func (b *BinaryData) AddFloat32Array(values []float32) error {
 		values = []float32{}
 	}
 	length := uint32(len(values))
-	err := b.AddUInt32(length)
-	if err != nil {
+	if err := b.AddNumber(length); err != nil {
 		return errors.Wrapf(err, "Faield to write length of byte array: %d", length)
 	}
 	for _, value := range values {
-		err = b.AddFloat32(value)
-		if err != nil {
+		if err := b.AddNumber(value); err != nil {
 			return errors.Wrapf(err, "Faield to write float32 data: %f", value)
 		}
 	}
@@ -244,13 +245,11 @@ func (b *BinaryData) AddFloat64Array(values []float64) error {
 		values = []float64{}
 	}
 	length := uint32(len(values))
-	err := b.AddUInt32(length)
-	if err != nil {
+	if err := b.AddNumber(length); err != nil {
 		return errors.Wrapf(err, "Faield to write length of byte array: %d", length)
 	}
 	for _, value := range values {
-		err = b.AddFloat64(value)
-		if err != nil {
+		if err := b.AddNumber(value); err != nil {
 			return errors.Wrapf(err, "Faield to write float64 data: %f", value)
 		}
 	}
@@ -259,6 +258,7 @@ func (b *BinaryData) AddFloat64Array(values []float64) error {
 
 // ==================================================
 // Add Map
+// 協議：先寫入條目數，再依序寫入 key + value（value 可為陣列或字串等複合型態）。
 // ==================================================
 
 func (b *BinaryData) AddMapInt64Int64Array(data map[int64][]int64) error {
@@ -266,17 +266,14 @@ func (b *BinaryData) AddMapInt64Int64Array(data map[int64][]int64) error {
 		data = make(map[int64][]int64)
 	}
 	length := uint32(len(data))
-	err := b.AddUInt32(length)
-	if err != nil {
+	if err := b.AddNumber(length); err != nil {
 		return errors.Wrapf(err, "Failed to write length of map: %d", length)
 	}
 	for k, v := range data {
-		err = b.AddInt64(k)
-		if err != nil {
+		if err := b.AddNumber(k); err != nil {
 			return errors.Wrapf(err, "Failed to write key of map: %d", k)
 		}
-		err = b.AddInt64Array(v)
-		if err != nil {
+		if err := b.AddInt64Array(v); err != nil {
 			return errors.Wrapf(err, "Failed to write value of map: %+v", v)
 		}
 	}
@@ -288,17 +285,14 @@ func (b *BinaryData) AddMapUInt32UInt32Array(data map[uint32][]uint32) error {
 		data = make(map[uint32][]uint32)
 	}
 	length := uint32(len(data))
-	err := b.AddUInt32(length)
-	if err != nil {
+	if err := b.AddNumber(length); err != nil {
 		return errors.Wrapf(err, "Failed to write length of map: %d", length)
 	}
 	for k, v := range data {
-		err = b.AddUInt32(k)
-		if err != nil {
+		if err := b.AddNumber(k); err != nil {
 			return errors.Wrapf(err, "Failed to write key of map: %d", k)
 		}
-		err = b.AddUInt32Array(v)
-		if err != nil {
+		if err := b.AddUInt32Array(v); err != nil {
 			return errors.Wrapf(err, "Failed to write value of map: %+v", v)
 		}
 	}
@@ -310,17 +304,14 @@ func (b *BinaryData) AddMapStringString(data map[string]string) error {
 		data = make(map[string]string)
 	}
 	length := uint32(len(data))
-	err := b.AddUInt32(length)
-	if err != nil {
+	if err := b.AddNumber(length); err != nil {
 		return errors.Wrapf(err, "Failed to write length of map: %d", length)
 	}
 	for k, v := range data {
-		err = b.AddString(k)
-		if err != nil {
+		if err := b.AddString(k); err != nil {
 			return errors.Wrapf(err, "Failed to write key of map: %s", k)
 		}
-		err = b.AddString(v)
-		if err != nil {
+		if err := b.AddString(v); err != nil {
 			return errors.Wrapf(err, "Failed to write value of map: %s", v)
 		}
 	}
@@ -332,17 +323,14 @@ func (b *BinaryData) AddMapStringByteArray(data map[string][]byte) error {
 		data = make(map[string][]byte)
 	}
 	length := uint32(len(data))
-	err := b.AddUInt32(length)
-	if err != nil {
+	if err := b.AddNumber(length); err != nil {
 		return errors.Wrapf(err, "Failed to write length of map: %d", length)
 	}
 	for k, v := range data {
-		err = b.AddString(k)
-		if err != nil {
+		if err := b.AddString(k); err != nil {
 			return errors.Wrapf(err, "Failed to write key of map: %s", k)
 		}
-		err = b.AddByteArray(v)
-		if err != nil {
+		if err := b.AddByteArray(v); err != nil {
 			return errors.Wrapf(err, "Failed to write value of map: %+v", v)
 		}
 	}
@@ -354,7 +342,7 @@ func (b *BinaryData) AddMapStringByteArray(data map[string][]byte) error {
 // ==================================================
 
 func (b *BinaryData) InsertInt32(data int32) error {
-	err := insertNumber(b, data)
+	err := b.InsertNumber(data)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to insert int32 data: %d", data)
 	}
@@ -362,7 +350,7 @@ func (b *BinaryData) InsertInt32(data int32) error {
 }
 
 func (b *BinaryData) InsertUInt32(data uint32) error {
-	err := insertNumber(b, data)
+	err := b.InsertNumber(data)
 	if err != nil {
 		return errors.Wrapf(err, "Failed to insert uint32 data: %d", data)
 	}
